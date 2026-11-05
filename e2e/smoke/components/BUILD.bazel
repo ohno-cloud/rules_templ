@@ -1,0 +1,40 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+load("@rules_templ//templ:defs.bzl", "templ_generate")
+
+package(default_visibility = ["//:__pkg__"])
+
+filegroup(
+    name = "templates",
+    srcs = glob(["partials/**/*.templ"]),
+)
+
+templ_generate(
+    name = "generate",
+    srcs = [
+        "hello.templ",
+        ":templates",
+    ],
+)
+
+# A second target using the same input verifies outputs are target-isolated.
+templ_generate(
+    name = "generate_again",
+    srcs = ["hello.templ"],
+)
+
+go_library(
+    name = "components",
+    srcs = [":generate"],
+    importpath = "github.com/ohno-cloud/rules_templ/e2e/smoke/components",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_a_h_templ//:templ",
+        "@com_github_a_h_templ//runtime",
+    ],
+)
+
+go_test(
+    name = "components_test",
+    srcs = ["components_test.go"],
+    embed = [":components"],
+)

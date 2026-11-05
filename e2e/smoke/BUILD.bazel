@@ -1,0 +1,35 @@
+"""Provides a simple way to test your rules as an external workspace.
+Add a basic smoke-test target below.
+"""
+
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@gazelle//:def.bzl", "DEFAULT_LANGUAGES", "gazelle", "gazelle_binary")
+load("@rules_go//go:def.bzl", "go_binary")
+
+go_binary(
+    name = "render",
+    srcs = ["main.go"],
+    deps = ["//components"],
+)
+
+build_test(
+    name = "smoke_test",
+    targets = [
+        "//components:generate",
+        "//components:generate_again",
+        "//components:components",
+        "//components:components_test",
+        "//:render",
+    ],
+)
+
+gazelle_binary(
+    name = "gazelle-all",
+    languages = DEFAULT_LANGUAGES + [],
+)
+
+# gazelle:proto package
+gazelle(
+    name = "gazelle",
+    gazelle = ":gazelle-all",
+)
